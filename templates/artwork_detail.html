@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row g-4">
+
+  <div class="col-md-7">
+
+    <img
+      src="{{ artwork.image_url }}"
+      class="img-fluid rounded shadow"
+      alt="{{ artwork.title }}"
+    >
+
+  </div>
+
+  <div class="col-md-5">
+
+    <span class="badge bg-secondary">
+      {{ artwork.category }}
+    </span>
+
+    <h1>
+      {{ artwork.title }}
+    </h1>
+
+    <h5>
+      Artist: {{ artwork.artist }}
+    </h5>
+
+    <p>
+      {{ artwork.description }}
+    </p>
+
+    <h2 class="artwork-price">
+      {{ '{:,.2f}'.format(artwork.price) }} THB
+    </h2>
+
+    <p>
+      {{ artwork.stock }} items left
+    </p>
+
+    {% if g.user %}
+
+    <form
+      method="post"
+      action="{{ url_for('cart_add', artwork_id=artwork.id) }}"
+    >
+      <button class="btn btn-success">
+        Add to Cart
+      </button>
+    </form>
+
+    {% else %}
+
+    <a
+      class="btn btn-primary"
+      href="{{ url_for('login') }}"
+    >
+      Login to Purchase
+    </a>
+
+    {% endif %}
+
+  </div>
+
+</div>
+
+
+<hr class="my-5">
+
+
+<div class="row">
+
+  <div class="col-md-6">
+
+    {% if g.user %}
+
+    <form
+      method="post"
+      action="{{ url_for('like_artwork', artwork_id=artwork.id) }}"
+      class="d-inline"
+    >
+      <button class="btn btn-outline-danger">
+        {{ '♥ Liked' if liked else '♡ Like' }}
+      </button>
+    </form>
+
+    <form
+      method="post"
+      action="{{ url_for('follow_artist', artist_name=artwork.artist) }}"
+      class="d-inline"
+    >
+      <button class="btn btn-outline-secondary">
+        {{ 'Following' if followed else 'Follow Artist' }}
+      </button>
+    </form>
+
+    {% if artwork.digital_file_url %}
+
+    <p class="mt-3 small text-muted">
+      The high-resolution digital file will be available
+      for download after the order payment is confirmed.
+    </p>
+
+    {% endif %}
+
+    <h5 class="mt-4">
+      Reviews
+    </h5>
+
+    <form
+      method="post"
+      action="{{ url_for('review_artwork', artwork_id=artwork.id) }}"
+    >
+
+      <select
+        class="form-select mb-2"
+        name="rating"
+      >
+        <option value="5">5 Stars</option>
+        <option value="4">4 Stars</option>
+        <option value="3">3 Stars</option>
+        <option value="2">2 Stars</option>
+        <option value="1">1 Star</option>
+      </select>
+
+      <textarea
+        class="form-control mb-2"
+        name="comment"
+        placeholder="Write a review"
+      ></textarea>
+
+      <button class="btn btn-primary">
+        Submit Review
+      </button>
+
+    </form>
+
+    {% endif %}
+
+  </div>
+
+
+  <div class="col-md-6">
+
+    {% for r in reviews %}
+
+    <div class="border rounded p-2 mb-2">
+
+      <strong>
+        {{ r.username }}
+      </strong>
+
+      · {{ r.rating }}/5
+
+      <p class="mb-0">
+        {{ r.comment }}
+      </p>
+
+    </div>
+
+    {% else %}
+
+    <p class="text-muted">
+      No reviews yet.
+    </p>
+
+    {% endfor %}
+
+  </div>
+
+</div>
+
+{% if similar_artworks %}
+
+<hr class="my-5">
+
+<section>
+
+  <div class="d-flex justify-content-between align-items-end mb-3">
+    <div>
+      <p class="text-muted small mb-1">CURATED FOR YOU</p>
+      <h2 class="mb-0">You may also like</h2>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    {% for a in similar_artworks %}
+
+    <div class="col-6 col-md-3">
+
+      <a
+        href="{{ url_for('artwork_detail', artwork_id=a.id) }}"
+        class="text-decoration-none text-dark"
+      >
+        <div class="h-100">
+
+          <img
+            src="{{ a.image_url }}"
+            class="img-fluid rounded shadow-sm w-100"
+            alt="{{ a.title }}"
+            style="aspect-ratio: 1 / 1; object-fit: cover;"
+          >
+
+          <div class="pt-3">
+            <p class="mb-1 fw-semibold">{{ a.title }}</p>
+            <p class="small text-muted mb-1">{{ a.artist }}</p>
+            <p class="small mb-0">{{ '{:,.2f}'.format(a.price) }} THB</p>
+          </div>
+
+        </div>
+      </a>
+
+    </div>
+
+    {% endfor %}
+
+  </div>
+
+</section>
+
+{% endif %}
+
+{% endblock %}

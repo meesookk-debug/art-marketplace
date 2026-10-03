@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-box wide">
+    <h2>{{ 'Edit Artwork' if artwork else 'Add Artwork' }}</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-6">
+                <label>Artwork Title</label>
+                <input class="form-control mb-3" name="title"
+                       value="{{ artwork.title if artwork else '' }}" required>
+
+                <label>Artist</label>
+                <input class="form-control mb-3" name="artist"
+                       value="{{ artwork.artist if artwork else '' }}" required>
+
+                <label>Category</label>
+                <input class="form-control mb-3" name="category"
+                       value="{{ artwork.category if artwork else '' }}" required>
+
+                <label>Price</label>
+                <input class="form-control mb-3" type="number" step="0.01"
+                       name="price" value="{{ artwork.price if artwork else '' }}" required>
+
+                <label>Stock</label>
+                <input class="form-control mb-3" type="number"
+                       name="stock" value="{{ artwork.stock if artwork else 1 }}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label>Upload Artwork Image</label>
+                <input class="form-control mb-2"
+                       type="file"
+                       name="image_file"
+                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                       {% if not artwork %}required{% endif %}>
+
+                <small class="text-muted d-block mb-3">
+                    JPG, JPEG, PNG or WEBP — maximum 8 MB.
+                    The system will automatically create a watermarked preview.
+                </small>
+
+                {% if artwork and artwork.image_url %}
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-2">Current Preview</small>
+                    <img src="{{ artwork.image_url }}"
+                         alt="Artwork preview"
+                         style="width:100%;max-height:260px;object-fit:cover;border-radius:6px;">
+                </div>
+                {% endif %}
+
+                <label>Tags</label>
+                <input class="form-control mb-3" name="tags"
+                       value="{{ artwork.tags if artwork else '' }}"
+                       placeholder="painting, abstract, blue">
+
+                <label>Digital File URL</label>
+                <input class="form-control mb-3" name="digital_file_url"
+                       value="{{ artwork.digital_file_url if artwork else '' }}">
+
+                <label>Description</label>
+                <textarea class="form-control mb-3" name="description"
+                          rows="8" required>{{ artwork.description if artwork else '' }}</textarea>
+            </div>
+        </div>
+
+        <button class="btn btn-primary">
+            {{ 'Update Artwork' if artwork else 'Add Artwork' }}
+        </button>
+    </form>
+</div>
+{% endblock %}

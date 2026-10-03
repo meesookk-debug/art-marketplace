@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or 'Art Marketplace' }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav class="navbar site-nav">
+  <div class="container">
+    <a class="navbar-brand brand" href="{{ url_for('index') }}">
+      <span class="brand-mark">AM</span>
+      <span>ART MARKETPLACE</span>
+    </a>
+    <div class="d-flex flex-wrap gap-2 align-items-center nav-actions">
+      <a class="nav-link-pill" href="{{ url_for('artist_directory') }}">Artists</a>
+      {% if g.user %}
+        <span class="user-chip">{{ g.user.full_name }}<small>{{ g.user.role }}</small></span>
+
+        {% if g.user.role in ['admin','staff'] %}
+          <a class="nav-link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
+        {% elif g.user.role == 'artist' %}
+          <a class="nav-link-pill" href="{{ url_for('artist_profile', username=g.user.username) }}">Profile</a>
+          <a class="nav-link-pill" href="{{ url_for('artist_dashboard') }}">Artist Studio</a>
+          <a class="nav-link-pill" href="{{ url_for('artist_commissions') }}">Commissions</a>
+        {% else %}
+          <a class="nav-link-pill" href="{{ url_for('commission_request') }}">Commission</a>
+          <a class="nav-link-pill" href="{{ url_for('my_commissions') }}">My Commissions</a>
+          {% if g.user.artist_status == 'pending' %}
+            <span class="nav-link-pill" style="cursor:default;">Artist Pending</span>
+          {% elif g.user.artist_status == 'rejected' %}
+            <a class="nav-link-pill" href="{{ url_for('apply_artist') }}">Reapply as Artist</a>
+          {% else %}
+            <a class="nav-link-pill" href="{{ url_for('apply_artist') }}">Apply as Artist</a>
+          {% endif %}
+        {% endif %}
+
+        <a class="nav-link-pill" href="{{ url_for('cart') }}">Cart</a>
+        <a class="nav-link-pill" href="{{ url_for('my_orders') }}">Orders</a>
+        <a class="nav-link-pill dark" href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+        <a class="nav-link-pill" href="{{ url_for('login') }}">Login</a>
+        <a class="nav-link-pill dark" href="{{ url_for('register') }}">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+<main class="container page-shell">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} soft-alert">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="site-footer"><div class="container"><span>ART MARKETPLACE</span><span>Curated art · 2026</span></div></footer>
+</body>
+</html>

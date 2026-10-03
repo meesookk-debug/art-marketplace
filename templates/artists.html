@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-title">
+  <div>
+    <div class="eyebrow">Marketplace</div>
+    <h1>Artists</h1>
+  </div>
+</div>
+
+{% if artists %}
+<div class="artist-directory-grid">
+  {% for artist in artists %}
+  <article class="artist-directory-card">
+    <a class="artist-avatar" href="{{ url_for('artist_profile', username=artist.username) }}">
+      {{ artist.full_name[:1]|upper }}
+    </a>
+    <div class="artist-directory-copy">
+      <div class="artist-directory-meta">
+        <span>Artist</span>
+        <span>{{ artist.artwork_count or 0 }} artworks</span>
+      </div>
+      <h2><a href="{{ url_for('artist_profile', username=artist.username) }}">{{ artist.full_name }}</a></h2>
+      <p class="artist-handle">@{{ artist.username }}</p>
+      <p>{{ (artist.artist_bio or 'Artist profile coming soon.')|truncate(135) }}</p>
+      <div class="artist-directory-bottom">
+        <span>{{ artist.follower_count or 0 }} followers</span>
+        <a href="{{ url_for('artist_profile', username=artist.username) }}">View Profile ↗</a>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-collection">
+  <div class="empty-number">00</div>
+  <h3>No artists yet</h3>
+  <p>Approved artist profiles will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}

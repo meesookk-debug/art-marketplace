@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="home-hero">
+    <div class="hero-copy">
+        <p class="eyebrow">THE ART MARKETPLACE · 2026</p>
+
+        <h1>
+            Ars longa<br>
+            <em>vita brevis</em> 
+        </h1>
+
+        <p class="hero-description">
+            Discover original artworks, emerging artists,
+            and carefully selected pieces made for modern collectors.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#collection" class="luxury-btn dark">
+                Explore Collection
+            </a>
+
+            <a href="#categories" class="luxury-btn light">
+                Browse Categories
+            </a>
+        </div>
+    </div>
+
+    <div class="hero-side">
+        <div class="hero-number">01</div>
+        <div class="hero-line"></div>
+        <p>
+            Curated works<br>
+            for curious minds.
+        </p>
+    </div>
+</section>
+
+
+<!-- INTRO / STATS -->
+<section class="intro-section">
+
+    <div class="intro-text">
+        <p class="eyebrow">ABOUT THE MARKETPLACE</p>
+
+        <h2>
+            A quieter way<br>
+            to discover art.
+        </h2>
+    </div>
+
+    <div class="intro-description">
+        <p>
+            Art Marketplace brings together paintings, digital art,
+            photography and contemporary works in one carefully
+            curated space.
+        </p>
+
+        <p class="small-note">
+            Discover something new. Find something that feels like you.
+        </p>
+    </div>
+
+</section>
+
+
+<div class="stats-strip">
+
+    <div class="stat-item">
+        <strong>01</strong>
+        <span>Curated Collection</span>
+    </div>
+
+    <div class="stat-item">
+        <strong>∞</strong>
+        <span>Creative Possibilities</span>
+    </div>
+
+    <div class="stat-item">
+        <strong>24/7</strong>
+        <span>Online Gallery</span>
+    </div>
+
+</div>
+
+
+<!-- CATEGORIES -->
+<section id="categories" class="category-section">
+
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">EXPLORE</p>
+            <h2>Browse by category</h2>
+        </div>
+    </div>
+
+    <div class="category-list">
+
+        <a
+            href="{{ url_for('index') }}"
+            class="category-pill {% if not category %}active{% endif %}"
+        >
+            All Works
+        </a>
+
+        {% for c in categories %}
+        <a
+            href="{{ url_for('index', category=c.category) }}"
+            class="category-pill {% if category == c.category %}active{% endif %}"
+        >
+            {{ c.category }}
+        </a>
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<!-- SEARCH -->
+<section class="search-panel">
+
+    <div class="search-title">
+        <p class="eyebrow">FIND YOUR PIECE</p>
+        <h2>Search the collection</h2>
+    </div>
+
+    <form method="get" class="premium-search">
+
+        <div class="search-input-wrap">
+            <span>⌕</span>
+
+            <input
+                type="text"
+                name="q"
+                value="{{ q }}"
+                placeholder="Search artwork, artist, or description"
+            >
+        </div>
+
+        {% if category %}
+        <input type="hidden" name="category" value="{{ category }}">
+        {% endif %}
+
+        <select name="sort">
+            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>
+                Newest
+            </option>
+
+            <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>
+                Price: Low to High
+            </option>
+
+            <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>
+                Price: High to Low
+            </option>
+
+            <option value="title" {% if sort == 'title' %}selected{% endif %}>
+                A — Z
+            </option>
+        </select>
+
+        <button type="submit" class="search-button">
+            Search
+        </button>
+
+        {% if q or category %}
+        <a href="{{ url_for('index') }}" class="clear-button">
+            Clear
+        </a>
+        {% endif %}
+
+    </form>
+
+</section>
+
+
+<!-- COLLECTION -->
+<section id="collection" class="collection-section">
+
+    <div class="section-heading collection-heading">
+
+        <div>
+            <p class="eyebrow">THE COLLECTION</p>
+
+            <h2>
+                Curated selection
+            </h2>
+        </div>
+
+        <span class="collection-count">
+            {{ artworks|length }} works
+        </span>
+
+    </div>
+
+
+    {% if artworks %}
+
+    <div class="art-grid">
+
+        {% for artwork in artworks %}
+
+        <article class="art-card">
+
+            <a
+                href="{{ url_for('artwork_detail', artwork_id=artwork.id) }}"
+                class="art-image-link"
+            >
+
+                <div class="art-image-wrap">
+
+                    <img
+                        src="{{ artwork.image_url }}"
+                        alt="{{ artwork.title }}"
+                        class="art-image"
+                    >
+
+                    {% if loop.index <= 3 and not q and not category %}
+                    <span class="new-label">
+                        NEW
+                    </span>
+                    {% endif %}
+
+                    <span class="view-label">
+                        View artwork →
+                    </span>
+
+                </div>
+
+            </a>
+
+
+            <div class="art-info">
+
+                <div class="art-meta">
+
+                    <span>
+                        {{ artwork.category }}
+                    </span>
+
+                    <span>
+                        {{ "%02d"|format(loop.index) }}
+                    </span>
+
+                </div>
+
+
+                <h3>
+                    <a
+                        href="{{ url_for('artwork_detail', artwork_id=artwork.id) }}"
+                    >
+                        {{ artwork.title }}
+                    </a>
+                </h3>
+
+
+                <p class="artist-name">
+                    {{ artwork.artist }}
+                </p>
+
+
+                <div class="art-bottom">
+
+                    <span class="art-price">
+                        {{ '{:,.2f}'.format(artwork.price) }} THB
+                    </span>
+
+                    <span class="arrow">
+                        ↗
+                    </span>
+
+                </div>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- PAGINATION -->
+    {% if pages > 1 %}
+
+    <div class="premium-pagination">
+
+        {% if page > 1 %}
+        <a
+            href="{{ url_for('index', q=q, category=category, sort=sort, page=page-1) }}"
+        >
+            ← Previous
+        </a>
+        {% endif %}
+
+
+        <span>
+            {{ "%02d"|format(page) }}
+            <small>/</small>
+            {{ "%02d"|format(pages) }}
+        </span>
+
+
+        {% if page < pages %}
+        <a
+            href="{{ url_for('index', q=q, category=category, sort=sort, page=page+1) }}"
+        >
+            Next →
+        </a>
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+
+    {% else %}
+
+    <div class="empty-collection">
+
+        <div class="empty-number">
+            00
+        </div>
+
+        <h3>
+            Nothing found.
+        </h3>
+
+        <p>
+            Try another search or browse all categories.
+        </p>
+
+        <a href="{{ url_for('index') }}" class="luxury-btn dark">
+            View All Works
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</section>
+
+
+<!-- BOTTOM EDITORIAL -->
+<section class="editorial-banner">
+
+    <div>
+
+        <p class="eyebrow">
+            ART IS PERSONAL
+        </p>
+
+        <h2>
+            Find a piece<br>
+            worth remembering.
+        </h2>
+
+    </div>
+
+    <div class="editorial-number">
+        AM
+    </div>
+
+</section>
+
+{% endblock %}

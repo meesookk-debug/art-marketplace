@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-title">
+  <div>
+    <div class="eyebrow">Artist Profile</div>
+    <h1>Edit Profile</h1>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('artist_profile', username=artist.username) }}">View Public Profile</a>
+</div>
+
+<div class="form-box wide">
+  <div class="mb-4">
+    <div class="artist-profile-avatar" style="width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:#f0e8e3;font-family:'Bodoni Moda',Georgia,serif;font-size:32px;margin-bottom:18px;">
+      {{ artist.full_name[:1]|upper }}
+    </div>
+    <div class="eyebrow">{{ artist.username }}</div>
+    <h2>{{ artist.full_name }}</h2>
+    <p>Update the information visitors see on your public Artist Profile.</p>
+  </div>
+
+  <form method="post">
+    <label for="artist_bio">About Your Work</label>
+    <textarea
+      id="artist_bio"
+      name="artist_bio"
+      class="form-control"
+      minlength="20"
+      required
+      placeholder="Tell collectors about your style, inspiration, medium, or creative practice..."
+    >{{ artist.artist_bio or '' }}</textarea>
+    <div class="text-muted mt-2" style="font-size:11px;">At least 20 characters.</div>
+
+    <label for="portfolio_url">Portfolio URL</label>
+    <input
+      id="portfolio_url"
+      type="url"
+      name="portfolio_url"
+      class="form-control"
+      value="{{ artist.portfolio_url or '' }}"
+      placeholder="https://your-portfolio.com"
+    >
+
+    <div class="d-flex flex-wrap gap-2 mt-4">
+      <button type="submit" class="btn btn-primary">Save Profile</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('artist_profile', username=artist.username) }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

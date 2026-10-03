@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-box wide">
+  <div class="eyebrow">Custom artwork</div>
+  <h2>Commission an Artist</h2>
+  <p>Choose an approved artist, describe your project, and set your budget.</p>
+  {% if artists %}
+  <form method="post">
+    <label>Artist</label>
+    <select class="form-select mb-3" name="artist_name" required>
+      <option value="">Select an artist</option>
+      {% for artist in artists %}<option value="{{ artist.full_name }}" {% if request.args.get("artist", "")|lower == artist.username|lower %}selected{% endif %}>{{ artist.full_name }}{% if artist.username %} · @{{ artist.username }}{% endif %}</option>{% endfor %}
+    </select>
+    <label>Project Brief</label>
+    <textarea class="form-control mb-3" name="brief" rows="7" placeholder="Describe the subject, style, dimensions, deadline, and references." required></textarea>
+    <label>Budget (THB)</label>
+    <input class="form-control mb-3" type="number" min="0" step="0.01" name="budget" required>
+    <button class="btn btn-primary">Submit Commission Request</button>
+    <a class="btn btn-outline-secondary ms-2" href="{{ url_for('my_commissions') }}">My Commissions</a>
+  </form>
+  {% else %}
+    <div class="empty-collection"><div class="empty-number">00</div><h3>No approved artists yet</h3><p>Artist profiles must be approved by an admin before they can receive commission requests.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

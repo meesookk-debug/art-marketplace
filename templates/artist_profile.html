@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="artist-profile-shell">
+  <section class="artist-profile-hero">
+    <div class="artist-profile-avatar">{{ artist.full_name[:1]|upper }}</div>
+    <div class="artist-profile-heading">
+      <div class="eyebrow">Artist Profile</div>
+      <h1>{{ artist.full_name }}</h1>
+      <p class="artist-handle">@{{ artist.username }}</p>
+      {% if artist.artist_bio %}<p class="artist-profile-bio">{{ artist.artist_bio }}</p>{% else %}<p class="artist-profile-bio">This artist has not added a biography yet.</p>{% endif %}
+      <div class="artist-profile-actions">
+        {% if is_owner %}
+          <a class="btn btn-outline-secondary" href="{{ url_for('artist_profile_edit') }}">Edit Profile</a>
+          <a class="btn btn-primary" href="{{ url_for('artist_dashboard') }}">Artist Studio</a>
+        {% else %}
+          {% if g.user %}
+          <form method="post" action="{{ url_for('follow_artist', artist_name=artist.full_name) }}">
+            <button class="btn {{ 'btn-primary' if followed else 'btn-outline-primary' }}">{{ 'Following' if followed else 'Follow Artist' }}</button>
+          </form>
+          {% endif %}
+          <a class="btn btn-primary" href="{{ url_for('commission_request') }}?artist={{ artist.username }}">Commission This Artist</a>
+        {% endif %}
+        {% if artist.portfolio_url %}
+          <a class="btn btn-outline-secondary" href="{{ artist.portfolio_url }}" target="_blank" rel="noopener noreferrer">Portfolio ↗</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="artist-profile-stats">
+      <div><strong>{{ artworks|length }}</strong><span>Featured Artworks</span></div>
+      <div><strong>{{ follower_count }}</strong><span>Followers</span></div>
+    </div>
+  </section>
+
+  <section class="artist-profile-work">
+    <div class="section-heading">
+      <h2>Selected Works</h2>
+      <span class="collection-count">{{ artworks|length }} works</span>
+    </div>
+
+    {% if artworks %}
+    <div class="art-grid">
+      {% for a in artworks %}
+      <article class="art-card">
+        <a class="art-image-link" href="{{ url_for('artwork_detail', artwork_id=a.id) }}">
+          <div class="art-image-wrap">
+            <img class="art-image" src="{{ a.image_url }}" alt="{{ a.title }}">
+            <span class="view-label">View artwork</span>
+          </div>
+        </a>
+        <div class="art-info">
+          <div class="art-meta"><span>{{ a.category }}</span><span>Available</span></div>
+          <h3><a href="{{ url_for('artwork_detail', artwork_id=a.id) }}">{{ a.title }}</a></h3>
+          <p class="artist-name">{{ artist.full_name }}</p>
+          <div class="art-bottom"><span class="art-price">{{ '{:,.2f}'.format(a.price) }} THB</span><span class="arrow">↗</span></div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-collection">
+      <div class="empty-number">00</div>
+      <h3>No approved artworks yet</h3>
+      <p>This artist has not published any artworks for sale yet.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

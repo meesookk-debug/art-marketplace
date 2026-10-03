@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-title">
+    <div>
+        <div class="eyebrow">Payment</div>
+        <h1>Complete Your Payment</h1>
+    </div>
+</div>
+
+<div class="payment-shell">
+    <div class="payment-card">
+        <div class="eyebrow">Order #{{ order.id }}</div>
+        <div class="payment-amount">
+            {{ '{:,.2f}'.format(order.total) }} THB
+        </div>
+
+        <p>
+            Payment method:
+            <strong>{{ order.payment_method|replace('_', ' ')|title }}</strong>
+        </p>
+
+        <div class="payment-instruction">
+            <h3>PromptPay</h3>
+            <p>Please transfer the exact amount shown above.</p>
+            <p>After completing the transfer, upload your payment slip below.</p>
+        </div>
+
+        {% if order.status == 'payment_review' %}
+            <div class="alert alert-warning">
+                Your payment slip has been submitted and is waiting for staff review.
+            </div>
+            <a href="{{ url_for('payment_slip', order_id=order.id) }}"
+               target="_blank"
+               class="btn btn-outline-dark">
+                View Submitted Slip
+            </a>
+
+        {% elif order.status == 'paid' %}
+            <div class="alert alert-success">
+                Payment approved.
+            </div>
+            {% if order.payment_slip_filename %}
+                <a href="{{ url_for('payment_slip', order_id=order.id) }}"
+                   target="_blank"
+                   class="btn btn-outline-dark">
+                    View Payment Slip
+                </a>
+            {% endif %}
+
+        {% elif order.status == 'payment_rejected' %}
+            <div class="alert alert-danger">
+                <strong>Payment slip rejected.</strong>
+                {% if order.payment_review_note %}
+                    <div class="mt-2">{{ order.payment_review_note }}</div>
+                {% endif %}
+            </div>
+
+            <form method="post"
+                  enctype="multipart/form-data"
+                  action="{{ url_for('confirm_payment', order_id=order.id) }}">
+                <label class="form-label">Upload a new payment slip</label>
+                <input type="file"
+                       name="payment_slip"
+                       class="form-control"
+                       accept=".jpg,.jpeg,.png,.webp,.pdf"
+                       required>
+                <small class="text-muted">
+                    JPG, JPEG, PNG, WEBP or PDF — maximum 8 MB.
+                </small>
+                <button class="btn btn-dark mt-4">
+                    Submit New Slip
+                </button>
+            </form>
+
+        {% elif order.status in ('shipping', 'completed') %}
+            <div class="alert alert-success">
+                Your payment has been approved and this order is being processed.
+            </div>
+            {% if order.payment_slip_filename %}
+                <a href="{{ url_for('payment_slip', order_id=order.id) }}"
+                   target="_blank"
+                   class="btn btn-outline-dark">
+                    View Payment Slip
+                </a>
+            {% endif %}
+
+        {% else %}
+            <form method="post"
+                  enctype="multipart/form-data"
+                  action="{{ url_for('confirm_payment', order_id=order.id) }}">
+                <label class="form-label">Payment Slip</label>
+                <input type="file"
+                       name="payment_slip"
+                       class="form-control"
+                       accept=".jpg,.jpeg,.png,.webp,.pdf"
+                       required>
+                <small class="text-muted">
+                    JPG, JPEG, PNG, WEBP or PDF — maximum 8 MB.
+                </small>
+                <button class="btn btn-dark mt-4">
+                    Submit Payment for Review
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

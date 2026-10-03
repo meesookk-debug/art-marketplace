@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-box">
+  <div class="eyebrow">Join the marketplace</div>
+  <h2>Create Account</h2>
+  <p>Create a customer account or start an Artist application.</p>
+  <form method="post">
+    <label>Full Name</label>
+    <input class="form-control mb-3" name="full_name" required>
+    <label>Email</label>
+    <input class="form-control mb-3" type="email" name="email" required>
+    <label>Username</label>
+    <input class="form-control mb-3" name="username" required minlength="4">
+
+    <label>Account Type</label>
+    <div class="account-choice-grid mb-3">
+      <label class="account-choice">
+        <input type="radio" name="account_type" value="customer" checked>
+        <span><strong>Customer</strong><small>Buy art, use the cart, and request commissions.</small></span>
+      </label>
+      <label class="account-choice">
+        <input type="radio" name="account_type" value="artist">
+        <span><strong>Artist</strong><small>Apply to sell your own work and receive commissions.</small></span>
+      </label>
+    </div>
+    <div class="account-note">Artist access is granted only after admin approval.</div>
+
+    <label>Password</label>
+    <input class="form-control mb-3" type="password" name="password" required minlength="6">
+    <label>Confirm Password</label>
+    <input class="form-control mb-3" type="password" name="confirm" required>
+    <button class="btn btn-primary w-100">Create Account</button>
+  </form>
+</div>
+{% endblock %}

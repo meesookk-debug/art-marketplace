@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-title"><div><div class="eyebrow">Creator space</div><h1>Artist Studio</h1></div><div class="d-flex gap-2 flex-wrap"><a class="btn btn-outline-secondary" href="{{ url_for('artist_profile', username=g.user.username) }}">View Public Profile</a><a class="btn btn-outline-secondary" href="{{ url_for('artist_profile_edit') }}">Edit Profile</a><a class="btn btn-primary" href="{{ url_for('artist_artwork_new') }}">+ Add Artwork</a></div></div>
+<div class="row g-3 mb-4">
+  {% for label,value in [('My Artworks',stats.artworks),('Approved',stats.approved),('Pending Review',stats.pending),('Commission Requests',stats.commissions)] %}<div class="col-md-3"><div class="stat"><div class="text-muted">{{ label }}</div><div class="display-6">{{ value }}</div></div></div>{% endfor %}
+</div>
+<div class="row g-3 mb-5">
+  <div class="col-md-4">
+    <div class="stat">
+      <div class="text-muted">Sales</div>
+      <div class="display-6">{{ '{:,.2f}'.format(stats.sales or 0) }} THB</div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="artist-actions">
+      <a class="btn btn-outline-primary" href="{{ url_for('artist_artworks') }}">
+        Manage My Artworks
+      </a>
+
+      <a class="btn btn-outline-primary" href="{{ url_for('artist_commissions') }}">
+        View Commissions
+      </a>
+    </div>
+  </div>
+</div>
+<div class="section-heading"><h2>Recent Artworks</h2></div>
+<div class="table-wrap mb-5"><table class="table"><thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Status</th><th>Stock</th></tr></thead><tbody>{% for a in recent_artworks %}<tr><td>{{ a.title }}</td><td>{{ a.category }}</td><td>{{ '{:,.2f}'.format(a.price) }} THB</td><td><span class="badge bg-secondary">{{ a.status }}</span></td><td>{{ a.stock }}</td></tr>{% else %}<tr><td colspan="5">No artworks yet.</td></tr>{% endfor %}</tbody></table></div>
+<div class="section-heading"><h2>Recent Commission Requests</h2></div>
+<div class="table-wrap"><table class="table"><thead><tr><th>Customer</th><th>Brief</th><th>Budget</th><th>Status</th></tr></thead><tbody>{% for c in recent_commissions %}<tr><td>{{ c.customer_name or c.customer_username }}</td><td class="log-detail">{{ c.brief }}</td><td>{{ '{:,.2f}'.format(c.budget) }} THB</td><td><span class="badge bg-secondary">{{ c.status }}</span></td></tr>{% else %}<tr><td colspan="4">No commission requests yet.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-title">
+    <div>
+        <div class="eyebrow">Operations</div>
+        <h1>Orders</h1>
+    </div>
+</div>
+
+<div class="table-wrap">
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Payment Review</th>
+            <th>Update</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for o in orders %}
+        <tr>
+            <td>#{{ o.id }}</td>
+
+            <td>
+                <strong>{{ o.full_name or o.username }}</strong><br>
+                <small class="text-muted">@{{ o.username }}</small>
+            </td>
+
+            <td>
+                {{ '{:,.2f}'.format(o.total) }} THB
+            </td>
+
+            <td>
+                {{ o.status|replace('_', ' ')|title }}
+                {% if o.payment_slip_filename %}
+                    <div class="mt-2">
+                        <a href="{{ url_for('payment_slip', order_id=o.id) }}"
+                           target="_blank"
+                           class="btn btn-sm btn-outline-dark">
+                            View Slip
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="mt-2 small text-muted">
+                        No slip uploaded
+                    </div>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if o.status == 'payment_review' %}
+                    <form method="post"
+                          action="{{ url_for('review_payment', order_id=o.id) }}"
+                          class="mb-2">
+
+                        <input type="hidden" name="action" value="approve">
+
+                        <input type="text"
+                               name="note"
+                               class="form-control form-control-sm mb-2"
+                               placeholder="Optional approval note">
+
+                        <button class="btn btn-sm btn-success w-100">
+                            Approve Payment
+                        </button>
+                    </form>
+
+                    <form method="post"
+                          action="{{ url_for('review_payment', order_id=o.id) }}">
+
+                        <input type="hidden" name="action" value="reject">
+
+                        <input type="text"
+                               name="note"
+                               class="form-control form-control-sm mb-2"
+                               placeholder="Reason for rejection"
+                               required>
+
+                        <button class="btn btn-sm btn-outline-danger w-100">
+                            Reject Payment
+                        </button>
+                    </form>
+
+                {% elif o.status == 'paid' %}
+                    <span class="text-success">Payment approved</span>
+
+                {% elif o.status == 'payment_rejected' %}
+                    <span class="text-danger">Payment rejected</span>
+
+                    {% if o.payment_review_note %}
+                        <div class="small text-muted mt-1">
+                            {{ o.payment_review_note }}
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    <span class="text-muted">
+                        No payment review required
+                    </span>
+                {% endif %}
+            </td>
+
+            <td>
+                <form method="post"
+                      action="{{ url_for('update_order_status', order_id=o.id) }}">
+
+                    <select name="status" class="form-select form-select-sm mb-2">
+                        {% for s in [
+                            'pending_payment',
+                            'payment_review',
+                            'payment_rejected',
+                            'paid',
+                            'shipping',
+                            'completed',
+                            'cancelled'
+                        ] %}
+                            <option value="{{ s }}"
+                                {% if o.status == s %}selected{% endif %}>
+                                {{ s|replace('_', ' ')|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <button class="btn btn-sm btn-primary w-100">
+                        Save Status
+                    </button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="6">No orders yet.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}

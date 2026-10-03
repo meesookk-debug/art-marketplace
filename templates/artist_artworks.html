@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-title"><div><div class="eyebrow">Your collection</div><h1>My Artworks</h1></div><a class="btn btn-primary" href="{{ url_for('artist_artwork_new') }}">+ Add Artwork</a></div>
+<div class="table-wrap"><table class="table"><thead><tr><th>Artwork</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for a in artworks %}<tr><td><strong>{{ a.title }}</strong><br><small class="text-muted">{{ a.artist }}</small></td><td>{{ a.category }}</td><td>{{ '{:,.2f}'.format(a.price) }} THB</td><td>{{ a.stock }}</td><td><span class="badge bg-secondary">{{ a.status }}</span></td><td><div class="admin-actions"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('artist_artwork_edit', artwork_id=a.id) }}">Edit</a>{% if a.status != 'archived' %}<form method="post" action="{{ url_for('artist_artwork_archive', artwork_id=a.id) }}"><button class="btn btn-sm btn-outline-danger">Archive</button></form>{% endif %}</div></td></tr>{% else %}<tr><td colspan="6">You have not added any artworks yet.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

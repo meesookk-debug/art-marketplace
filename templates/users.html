@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-title"><div><div class="eyebrow">Administration</div><h1>Users & Artist Applications</h1></div></div>
+<div class="table-wrap"><table class="table"><thead><tr><th>User</th><th>Email</th><th>Role</th><th>Artist Application</th><th>Applied</th><th>Action</th></tr></thead><tbody>
+{% for u in users %}
+<tr>
+  <td><strong>{{ u.full_name }}</strong><br><small class="text-muted">@{{ u.username }}</small></td>
+  <td>{{ u.email or '—' }}</td>
+  <td><span class="badge bg-secondary">{{ u.role }}</span></td>
+  <td style="min-width:320px;">
+    {% if u.artist_status == 'pending' %}
+      <span class="artist-application-status pending">Pending</span>
+      {% if u.artist_bio %}<div class="log-detail mt-2"><strong>About:</strong><br>{{ u.artist_bio }}</div>{% endif %}
+      {% if u.portfolio_url %}<div class="mt-2"><a href="{{ u.portfolio_url }}" target="_blank" rel="noopener noreferrer">View Portfolio</a></div>{% endif %}
+    {% elif u.artist_status == 'approved' %}
+      <span class="artist-application-status approved">Approved</span>
+    {% elif u.artist_status == 'rejected' %}
+      <span class="artist-application-status rejected">Rejected</span>
+    {% else %}
+      <span class="text-muted">No application</span>
+    {% endif %}
+  </td>
+  <td>{% if u.artist_applied_at %}{{ u.artist_applied_at }}{% else %}—{% endif %}</td>
+  <td>
+    {% if u.artist_status == 'pending' %}
+      <div class="admin-actions">
+        <form method="post" action="{{ url_for('update_artist_status', user_id=u.id) }}"><input type="hidden" name="status" value="approved"><button class="btn btn-sm btn-primary">Approve</button></form>
+        <form method="post" action="{{ url_for('update_artist_status', user_id=u.id) }}"><input type="hidden" name="status" value="rejected"><button class="btn btn-sm btn-outline-danger">Reject</button></form>
+      </div>
+    {% elif u.artist_status == 'rejected' %}
+      <form method="post" action="{{ url_for('update_artist_status', user_id=u.id) }}"><input type="hidden" name="status" value="approved"><button class="btn btn-sm btn-outline-primary">Approve</button></form>
+    {% else %}
+      <span class="text-muted">—</span>
+    {% endif %}
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="6">No users found.</td></tr>
+{% endfor %}
+</tbody></table></div>
+{% endblock %}

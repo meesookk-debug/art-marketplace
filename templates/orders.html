@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>My Orders</h2>
+
+<table class="table">
+
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Total</th>
+      <th>Status</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    {% for o in orders %}
+
+    <tr>
+      <td>#{{ o.id }}</td>
+
+      <td>
+        {{ '{:,.2f}'.format(o.total) }} THB
+      </td>
+
+      <td>
+        <span class="badge bg-info text-dark">
+          {{ o.status }}
+        </span>
+      </td>
+
+      <td>
+        {{ o.created_at }}
+      </td>
+    </tr>
+
+    {% else %}
+
+    <tr>
+      <td colspan="4">
+        No orders yet.
+      </td>
+    </tr>
+
+    {% endfor %}
+
+  </tbody>
+
+</table>
+
+{% endblock %}

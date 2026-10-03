@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-box wide">
+  <div class="eyebrow">Artist application</div>
+  {% if pending %}
+    <h2>Application Under Review</h2>
+    <p>Your application has been submitted. Your account remains in Customer mode until an admin approves it.</p>
+    <div class="artist-application-card">
+      <span class="artist-application-status pending">Pending Review</span>
+      <h3 class="mt-3">{{ user.full_name }}</h3>
+      {% if user.artist_bio %}<p>{{ user.artist_bio }}</p>{% endif %}
+      {% if user.portfolio_url %}<p><a href="{{ user.portfolio_url }}" target="_blank" rel="noopener noreferrer">View Portfolio</a></p>{% endif %}
+      {% if user.artist_applied_at %}<small class="text-muted">Applied: {{ user.artist_applied_at }}</small>{% endif %}
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Back to Marketplace</a>
+  {% else %}
+    <h2>{{ 'Reapply as an Artist' if rejected else 'Apply to Become an Artist' }}</h2>
+    <p>Tell the admin about your work. Once approved, your account will unlock Artist Studio, artwork management, and commission requests.</p>
+    {% if rejected %}<div class="alert alert-warning soft-alert">Your previous application was rejected. You can update your information and apply again.</div>{% endif %}
+    <form method="post">
+      <label>About Your Work</label>
+      <textarea class="form-control mb-3" name="artist_bio" rows="7" minlength="20" placeholder="Tell us about your medium, style, experience, and the kind of work you create." required>{{ user.artist_bio or '' }}</textarea>
+      <label>Portfolio URL <span class="text-muted">(optional)</span></label>
+      <input class="form-control mb-3" name="portfolio_url" value="{{ user.portfolio_url or '' }}" placeholder="https://...">
+      <button class="btn btn-primary">Submit Artist Application</button>
+      <a class="btn btn-outline-secondary ms-2" href="{{ url_for('index') }}">Cancel</a>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

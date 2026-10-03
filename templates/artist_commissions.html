@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-title"><div><div class="eyebrow">Artist Studio</div><h1>Commission Requests</h1></div></div>
+<div class="table-wrap"><table class="table"><thead><tr><th>Customer</th><th>Brief</th><th>Budget</th><th>Status</th><th>Update</th></tr></thead><tbody>
+{% for c in commissions %}<tr><td>{{ c.customer_name or c.customer_username }}</td><td class="log-detail">{{ c.brief }}</td><td>{{ '{:,.2f}'.format(c.budget) }} THB</td><td><span class="badge bg-secondary">{{ c.status }}</span></td><td><form method="post" action="{{ url_for('artist_commission_status', commission_id=c.id) }}" class="d-flex gap-2"><select name="status" class="form-select form-select-sm">{% for s in ['requested','reviewing','accepted','rejected','completed'] %}<option value="{{ s }}" {% if c.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select><button class="btn btn-sm btn-primary">Save</button></form></td></tr>{% else %}<tr><td colspan="5">No commission requests yet.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

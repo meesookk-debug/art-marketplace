@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-title">
+    <div>
+        <div class="eyebrow">Admin</div>
+        <h1>Commission Requests</h1>
+        <p class="text-muted">
+            Admin and staff can monitor commission requests.
+            Commission status is managed by the assigned artist.
+        </p>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    Admin and staff cannot accept, reject, or complete commissions.
+    Only the assigned artist can manage the commission status.
+</div>
+
+<div class="table-card">
+
+    {% if commissions %}
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Customer</th>
+                    <th>Artist</th>
+                    <th>Budget</th>
+                    <th>Brief</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for c in commissions %}
+
+                <tr>
+                    <td>
+                        {{ c.id }}
+                    </td>
+
+                    <td>
+                        <strong>
+                            {{ c.customer_name or c.customer_username or 'Unknown' }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {{ c.artist_name or 'Unknown' }}
+                    </td>
+
+                    <td>
+                        {% if c.budget %}
+                            {{ c.budget }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ c.brief }}
+                    </td>
+
+                    <td>
+                        <span class="status-pill">
+                            {{ c.status|replace('_', ' ')|title }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ c.created_at }}
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        <h3>No commission requests</h3>
+        <p>There are currently no commission requests to monitor.</p>
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
