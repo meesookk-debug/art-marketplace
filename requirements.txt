@@ -2,3 +2,4 @@ Flask==3.1.2
 psycopg2-binary==2.9.10
 python-dotenv==1.1.1
 Pillow==11.3.0
+vercel>=0.5.0
