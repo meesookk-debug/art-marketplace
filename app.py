@@ -4,17 +4,24 @@ import io
 import urllib.request
 import hashlib
 import secrets
+import tempfile
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
 from functools import wraps
 
 from dotenv import load_dotenv
 load_dotenv()
+load_dotenv(".env.local", override=False)
 
 from flask import Flask, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from uuid import uuid4
+
+try:
+    from vercel import blob
+except ImportError:
+    blob = None
 
 try:
     import psycopg2
@@ -24,7 +31,7 @@ except ImportError:
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-me")
-app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024
 STAFF_ACCESS_KEY = os.getenv("STAFF_ACCESS_KEY", "")
 
 # -----------------------------------------------------------------------------
@@ -364,13 +371,39 @@ def staff_access():
     return render_template("staff_access.html")
 
 
+def _require_blob():
+    if blob is None:
+        raise ValueError("Vercel Blob SDK is not installed. Please add 'vercel' to requirements.txt.")
+    if not os.getenv("BLOB_READ_WRITE_TOKEN"):
+        raise ValueError("BLOB_READ_WRITE_TOKEN is not configured.")
+    return blob
+
+
+def _upload_file_to_blob(local_path, blob_path, content_type):
+    """Upload a local temporary file to the configured public Vercel Blob store."""
+    blob_client = _require_blob()
+    result = blob_client.upload_file(
+        local_path,
+        blob_path,
+        access="public",
+        content_type=content_type,
+        add_random_suffix=False,
+        overwrite=False,
+        token=os.getenv("BLOB_READ_WRITE_TOKEN"),
+    )
+    return result.url
+
+
 def _build_watermarked_preview(image, artist_name):
-    """Create and save a watermarked preview from a PIL image."""
+    """Create a watermarked preview in /tmp and upload it to Vercel Blob."""
     image = image.convert("RGBA")
     max_side = 1800
     scale = min(1, max_side / max(image.size))
     if scale < 1:
-        image = image.resize((int(image.width * scale), int(image.height * scale)), Image.LANCZOS)
+        image = image.resize(
+            (int(image.width * scale), int(image.height * scale)),
+            Image.LANCZOS,
+        )
 
     overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
@@ -396,16 +429,28 @@ def _build_watermarked_preview(image, artist_name):
     draw.text((x, y), text, font=font, fill=(25, 25, 25, 185))
 
     watermarked = Image.alpha_composite(image, overlay).convert("RGB")
-    upload_dir = os.path.join(app.root_path, "static", "uploads", "watermarked")
-    os.makedirs(upload_dir, exist_ok=True)
+
+    temp_path = None
     filename = f"watermark_{uuid4().hex}.jpg"
-    filepath = os.path.join(upload_dir, filename)
-    watermarked.save(filepath, "JPEG", quality=88, optimize=True)
-    return url_for("static", filename=f"uploads/watermarked/{filename}")
+    try:
+        fd, temp_path = tempfile.mkstemp(suffix=".jpg")
+        os.close(fd)
+        watermarked.save(temp_path, "JPEG", quality=88, optimize=True)
+        return _upload_file_to_blob(
+            temp_path,
+            f"previews/{filename}",
+            "image/jpeg",
+        )
+    finally:
+        if temp_path:
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
 
 
 def save_uploaded_artwork_image(upload, artist_name):
-    """Save the original upload and generate its watermarked preview."""
+    """Save the original upload and generate its watermarked preview in Vercel Blob."""
     if not upload or not upload.filename:
         raise ValueError("Please choose an image file.")
 
@@ -418,38 +463,58 @@ def save_uploaded_artwork_image(upload, artist_name):
     if ext not in allowed:
         raise ValueError("Please upload JPG, JPEG, PNG, or WEBP images only.")
 
+    content_type = {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "webp": "image/webp",
+    }[ext]
+
     stored_name = f"original_{uuid4().hex}.{ext}"
-    original_dir = os.path.join(app.root_path, "static", "uploads", "originals")
-    os.makedirs(original_dir, exist_ok=True)
-    original_path = os.path.join(original_dir, stored_name)
-    upload.save(original_path)
+    temp_path = None
 
     try:
-        with Image.open(original_path) as image:
+        fd, temp_path = tempfile.mkstemp(suffix=f".{ext}")
+        os.close(fd)
+        upload.save(temp_path)
+
+        with Image.open(temp_path) as image:
             image.load()
             preview_url = _build_watermarked_preview(image, artist_name)
-    except Exception:
-        try:
-            os.remove(original_path)
-        except OSError:
-            pass
-        raise ValueError("The uploaded file is not a valid image.")
 
-    original_url = url_for("static", filename=f"uploads/originals/{stored_name}")
-    return original_url, preview_url
+        original_url = _upload_file_to_blob(
+            temp_path,
+            f"originals/{stored_name}",
+            content_type,
+        )
+        return original_url, preview_url
+
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise ValueError("The uploaded file is not a valid image or could not be stored.") from exc
+    finally:
+        if temp_path:
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
 
 
 def create_watermarked_image(image_url, artist_name):
-    """Download an artwork image, add a subtle watermark, and save the preview."""
+    """Download an artwork image, add a subtle watermark, and save the preview to Blob."""
     if not image_url.startswith(("http://", "https://")):
         raise ValueError("Image URL must start with http:// or https://.")
 
-    req = urllib.request.Request(image_url, headers={"User-Agent": "ArtMarketplace/1.0"})
+    req = urllib.request.Request(
+        image_url,
+        headers={"User-Agent": "ArtMarketplace/1.0"},
+    )
     with urllib.request.urlopen(req, timeout=15) as response:
-        raw = response.read(8 * 1024 * 1024 + 1)
+        raw = response.read(4 * 1024 * 1024 + 1)
 
-    if len(raw) > 8 * 1024 * 1024:
-        raise ValueError("Image is too large. Maximum size is 8 MB.")
+    if len(raw) > 4 * 1024 * 1024:
+        raise ValueError("Image is too large. Maximum size is 4 MB.")
 
     try:
         image = Image.open(io.BytesIO(raw))
@@ -473,7 +538,10 @@ def get_artwork_image_data(form, upload, artist_name, existing=None, required=Tr
         return image_url, image_url
 
     if existing and not required:
-        return existing.get("original_image_url") or existing.get("image_url"), existing.get("image_url")
+        return (
+            existing.get("original_image_url") or existing.get("image_url"),
+            existing.get("image_url"),
+        )
 
     if required:
         raise ValueError("Please upload an image or enter an Image URL.")
